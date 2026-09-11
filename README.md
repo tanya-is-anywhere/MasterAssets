@@ -3,13 +3,13 @@
 
 ## Технологический стек
 
-| Слой          | Технологии                     |
-|---------------|--------------------------------|
-| База данных   | PostgreSQL 16                  |
-| Управление БД | DBeaver, Alembic                      |
-| Бэкенд        | FastAPI, SQLAlchemy, JWT       |
-| Фронтенд      | React, Vite, Axios, TypeScript |
-| Дизайн        | Figma                          |
+| Слой          | Технологии                              |
+|---------------|-----------------------------------------|
+| База данных   | PostgreSQL 16                           |
+| Управление БД | DBeaver, Alembic                        |
+| Бэкенд        | FastAPI, SQLAlchemy, JWT                |
+| Фронтенд      | React, Vite, Axios, TypeScript, Mantine |
+| Дизайн        | Figma, Mantine                          |
 
 ## Лабораторная работа № 1
 ### Основные экраны
