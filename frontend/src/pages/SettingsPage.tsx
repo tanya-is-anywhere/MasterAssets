@@ -1,110 +1,45 @@
-// src/pages/SettingsPage.tsx
 import {
   Container,
   Title,
   Paper,
   Stack,
-  TextInput,
-  PasswordInput,
   Button,
   Group,
-  Divider,
   NumberInput,
   Select,
-  SimpleGrid,
-  Card,
   Text,
+  Divider,
+  SegmentedControl,
+  TextInput,
+  PasswordInput,
 } from '@mantine/core';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+
 export function SettingsPage() {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+
+  function handleLogout() {
+    logout();
+    navigate('/auth', { replace: true });
+  }
+
   return (
     <Container size="md" py="xl">
       <Title order={1} mb="xl">
         Настройки
       </Title>
-      <Button component={Link} to="/library" fullWidth mt="md">
-      Вернуться в каталог
-      </Button>
 
-      {/* СТАТИСТИКА */}
-      <Title order={3} mb="sm">
-        Статистика
-      </Title>
-      <SimpleGrid cols={{ base: 1, sm: 3 }} mb="xl">
-        <Card withBorder padding="md">
-          <Text size="sm" c="dimmed">
-            Ассетов
-          </Text>
-          <Text size="xl" fw={700}>
-            1 234
-          </Text>
-        </Card>
-        <Card withBorder padding="md">
-          <Text size="sm" c="dimmed">
-            Занято
-          </Text>
-          <Text size="xl" fw={700}>
-            2.4 GB
-          </Text>
-        </Card>
-        <Card withBorder padding="md">
-          <Text size="sm" c="dimmed">
-            Тегов
-          </Text>
-          <Text size="xl" fw={700}>
-            87
-          </Text>
-        </Card>
-      </SimpleGrid>
-
-      {/* ПРОФИЛЬ */}
-      <Paper withBorder p="lg" radius="md" mb="xl">
-        <Title order={3} mb="md">
-          Профиль
-        </Title>
-        <Stack>
-          <TextInput
-            label="Email"
-            defaultValue="user@example.com"
-          />
-          <Group justify="flex-end">
-            <Button>Сохранить email</Button>
-          </Group>
-        </Stack>
-      </Paper>
-
-      {/* ПАРОЛЬ */}
-      <Paper withBorder p="lg" radius="md" mb="xl">
-        <Title order={3} mb="md">
-          Смена пароля
-        </Title>
-        <Stack>
-          <PasswordInput
-            label="Текущий пароль"
-            placeholder="Введите текущий пароль"
-          />
-          <PasswordInput
-            label="Новый пароль"
-            placeholder="Минимум 8 символов"
-          />
-          <PasswordInput
-            label="Повторите новый пароль"
-            placeholder="Ещё раз"
-          />
-          <Group justify="flex-end">
-            <Button>Сменить пароль</Button>
-          </Group>
-        </Stack>
-      </Paper>
-
-      {/* ПАРАМЕТРЫ ПОИСКА */}
+      {/* Параметры поиска */}
       <Paper withBorder p="lg" radius="md" mb="xl">
         <Title order={3} mb="md">
           Параметры поиска
         </Title>
         <Stack>
           <NumberInput
-            label="Размер топа (сколько похожих показывать)"
+            label="Размер топа"
+            description="Сколько похожих показывать"
             defaultValue={5}
             min={1}
             max={50}
@@ -118,22 +53,76 @@ export function SettingsPage() {
             ]}
           />
           <Group justify="flex-end">
-            <Button>Сохранить параметры</Button>
+            <Button disabled>Сохранить параметры</Button>
+          </Group>
+          <Text size="xs" c="dimmed">
+            Сохранение настроек станет доступно после подключения API.
+          </Text>
+        </Stack>
+      </Paper>
+
+      {/* Внешний вид */}
+      <Paper withBorder p="lg" radius="md" mb="xl">
+        <Title order={3} mb="md">
+          Внешний вид
+        </Title>
+        <Stack>
+          <div>
+            <Text size="sm" fw={500} mb={4}>
+              Тема
+            </Text>
+            <SegmentedControl
+              fullWidth
+              defaultValue="auto"
+              data={[
+                { value: 'light', label: 'Светлая' },
+                { value: 'dark', label: 'Тёмная' },
+                { value: 'auto', label: 'Авто' },
+              ]}
+            />
+          </div>
+          <Text size="xs" c="dimmed">
+            Переключение темы станет доступно после подключения к Mantine
+            ColorScheme.
+          </Text>
+        </Stack>
+      </Paper>
+
+      {/* Смена пароля */}
+      <Paper withBorder p="lg" radius="md" mb="xl">
+        <Title order={3} mb="md">
+          Смена пароля
+        </Title>
+        <Stack>
+          <PasswordInput
+            label="Текущий пароль"
+            placeholder="Введите текущий пароль"
+          />
+          <PasswordInput
+            label="Новый пароль"
+            placeholder="Минимум 6 символов"
+          />
+          <PasswordInput
+            label="Повторите новый пароль"
+            placeholder="Ещё раз"
+          />
+          <Group justify="flex-end">
+            <Button disabled>Сменить пароль</Button>
           </Group>
         </Stack>
       </Paper>
 
-      {/* ОПАСНАЯ ЗОНА */}
+      {/* Опасная зона */}
       <Paper withBorder p="lg" radius="md">
         <Title order={3} mb="md" c="red">
           Опасная зона
         </Title>
         <Stack>
           <Text size="sm" c="dimmed">
-            Выход из аккаунта завершит текущую сессию на этом устройстве.
+            Выход завершит сессию на этом устройстве.
           </Text>
           <Group>
-            <Button component={Link} to="/auth" color="red" variant="light">
+            <Button color="red" variant="light" onClick={handleLogout}>
               Выйти из аккаунта
             </Button>
           </Group>
