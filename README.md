@@ -74,3 +74,44 @@ Auth — вход + регистрация в одном экране (табы)
 1. Установите необходимые Node.js, React, Vite, TypeScript компоненты.
 2. Перейдите в папку /frontend проекта.
 3. Запустите командой в терминале: npm run dev (пока для разработки).
+
+### Скриншоты интерфейса (Версия 2)
+![Страница-входа](docs/screenshots/in-page1.png)
+![Страница-регистрации](docs/screenshots/reg-page1.png)
+![Страница-настроек](docs/screenshots/settings-page-v2.png)
+![Страница-профиль](docs/screenshots/settings-page-2-v2.png)
+![Страница-загрузки](docs/screenshots/load-assets.png)
+![Страница-библиотеки](docs/screenshots/library-1.png)
+![Страница-библиотеки](docs/screenshots/library-2.png)
+![Страница-библиотеки](docs/screenshots/library-3.png)
+
+## Модели данных
+
+### users
+- `id` — PK
+- `email` — уникальный, индексирован
+- `hashed_password` — bcrypt-хеш
+- `name` — отображаемое имя
+- `created_at`, `updated_at`
+
+### assets
+- `id` — PK
+- `file_name`, `file_path` (уникальный), `mime_type`
+- `width`, `height`, `size_bytes`
+- `owner_id` — FK → `users.id`, `ON DELETE CASCADE`
+- `created_at`, `updated_at`
+
+### tags
+- `id` — PK
+- `name` — уникальный, индексирован
+- `created_at`, `updated_at`
+
+### asset_tags (ассоциативная таблица M:N)
+- `asset_id` — FK → `assets.id`, `ON DELETE CASCADE`
+- `tag_id` — FK → `tags.id`, `ON DELETE CASCADE`
+- PK: `(asset_id, tag_id)`
+
+### Связи
+- **User 1:N Asset** — у пользователя много ассетов.
+- **Asset M:N Tag** — через `asset_tags`.
+
