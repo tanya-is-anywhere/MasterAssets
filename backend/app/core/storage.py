@@ -56,14 +56,19 @@ def save_upload(file: UploadFile) -> tuple[str, str]:
 
     filename = generate_unique_filename(file.filename or "upload")
     root = get_storage_root()
-    dest = root / filename
+    dest = (root / filename).resolve()
 
     with dest.open("wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
-    relative_path = str(dest.relative_to(Path.cwd()))
-    return relative_path, filename
+    # Путь относительно cwd, в POSIX-формате (со слешами /)
+    try:
+        relative_path = dest.relative_to(Path.cwd().resolve())
+    except ValueError:
+        # Если по какой-то причине не получилось — берём как есть
+        relative_path = dest
 
+    return str(relative_path).replace("\\", "/"), filename
 
 def delete_file(file_path: str) -> bool:
     """
