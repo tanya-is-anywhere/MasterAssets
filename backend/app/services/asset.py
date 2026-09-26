@@ -142,3 +142,33 @@ def get_similar_assets(
         .limit(limit)
     )
     return list(db.scalars(stmt))
+
+def find_similar_assets(
+    db: Session,
+    asset_id: int,
+    owner_id: int,
+    limit: int = 5,
+) -> list[tuple[Asset, float]]:
+    """
+    Возвращает [(asset, cosine_distance), ...] — top-N ближайших по гистограмме.
+    Только ассеты того же пользователя с заполненной гистограммой.
+    """
+    target = get_asset(db, asset_id, owner_id)
+    if target is None or target.color_histogram is None:
+        return []
+
+    distance = Asset.color_histogram.cosine_distance(target.color_histogram)
+
+    stmt = (
+        select(Asset, distance.label("distance"))
+        .where(
+            Asset.owner_id == owner_id,
+            Asset.id != asset_id,
+            Asset.color_histogram.is_not(None),
+        )
+        .options(selectinload(Asset.tags))
+        .order_by(distance)
+        .limit(limit)
+    )
+
+    return [(asset, float(dist)) for asset, dist in db.execute(stmt).all()]

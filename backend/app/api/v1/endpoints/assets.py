@@ -6,10 +6,11 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_current_user
 from app.core.database import get_db
 from app.models.user import User
-from app.schemas.asset import AssetList, AssetRead, AssetUpdate
+from app.schemas.asset import AssetList, AssetRead, AssetUpdate, SimilarAsset
 from app.services.asset import (
     create_asset,
     delete_asset,
+    find_similar_assets,
     get_asset,
     list_assets,
     update_asset,
@@ -50,6 +51,27 @@ def get_one_asset(
     if asset is None:
         raise HTTPException(404, "Asset not found")
     return asset
+
+@router.get("/{asset_id}/similar", response_model=list[SimilarAsset])
+def get_similar(
+    asset_id: int,
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
+    limit: int = Query(5, ge=1, le=50),
+):
+    asset = get_asset(db, asset_id, current_user.id)
+    if asset is None:
+        raise HTTPException(404, "Asset not found")
+
+    results = find_similar_assets(db, asset_id, current_user.id, limit)
+
+    return [
+        SimilarAsset(
+            **AssetRead.model_validate(a).model_dump(),
+            similarity=round(1.0 - dist, 4),
+        )
+        for a, dist in results
+    ]
 
 @router.patch("/{asset_id}", response_model=AssetRead)
 def update_one_asset(
