@@ -4,7 +4,7 @@ from fastapi import UploadFile
 from PIL import Image
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
-
+from app.services.features import compute_features
 from app.core.storage import delete_file, save_upload
 from app.models.asset import Asset
 from app.models.tag import Tag
@@ -87,36 +87,31 @@ def create_asset(db: Session, file: UploadFile, owner_id: int) -> Asset:
 
     absolute_path = Path.cwd() / relative_path
     width, height = _extract_dimensions(absolute_path)
-
     size_bytes = absolute_path.stat().st_size
 
-    mime_type = file.content_type or "application/octet-stream"
-
-    original_name = file.filename or generated_name
+    # Вычисляем признаки (для SVG и битых файлов вернёт None)
+    features = compute_features(absolute_path) or {}
 
     asset = Asset(
-        file_name=original_name,
+        file_name=file.filename or generated_name,
         file_path=relative_path,
-        mime_type=mime_type,
+        mime_type=file.content_type or "application/octet-stream",
         width=width,
         height=height,
         size_bytes=size_bytes,
         owner_id=owner_id,
+        **features,
     )
     db.add(asset)
     db.commit()
     db.refresh(asset)
     return asset
 
-
-def update_asset(
-    db: Session,
-    asset: Asset,
-    data: AssetUpdate,
-) -> Asset:
-    """Обновляет теги ассета. Не коммитит — коммит делает вызывающий."""
+def update_asset(db: Session, asset: Asset, data: AssetUpdate) -> Asset:
     if data.tags is not None:
         asset.tags = get_or_create_tags(db, data.tags)
+    if data.file_name is not None:
+        asset.file_name = data.file_name
     db.commit()
     db.refresh(asset)
     return asset

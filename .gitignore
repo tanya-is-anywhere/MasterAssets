@@ -204,7 +204,7 @@ __marimo__/
 
 # Дополнительные ограничения
 *.iml
-/data/
+**/data/
 !/data/.gitkeep
 npm-debug.log*
 yarn-debug.log*
@@ -213,3 +213,5 @@ yarn-error.log*
 .temp/
 .tmp/
 frontend/node_modules/
+/backend/data/assets/
+

@@ -1,8 +1,8 @@
-from sqlalchemy import BigInteger, ForeignKey, Integer, String, Table, Column
+from sqlalchemy import Float, BigInteger, ForeignKey, Integer, String, Table, Column
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, TimestampMixin
-
+from pgvector.sqlalchemy import Vector
 
 # Ассоциативная таблица для M:N между Asset и Tag
 asset_tags = Table(
@@ -23,6 +23,18 @@ class Asset(Base, TimestampMixin):
     width: Mapped[int] = mapped_column(Integer, nullable=False)
     height: Mapped[int] = mapped_column(Integer, nullable=False)
     size_bytes: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    color_histogram: Mapped[list[float] | None] = mapped_column(
+        Vector(96), nullable=True
+    )
+    phash: Mapped[str | None] = mapped_column(
+        String(16), nullable=True, index=True
+    )
+    avg_color_rgb: Mapped[str | None] = mapped_column(
+        String(7), nullable=True
+    )
+    brightness: Mapped[float | None] = mapped_column(Float, nullable=True)
+    contrast: Mapped[float | None] = mapped_column(Float, nullable=True)
+    aspect_ratio: Mapped[float | None] = mapped_column(Float, nullable=True)
 
     owner_id: Mapped[int] = mapped_column(
         ForeignKey("users.id", ondelete="CASCADE"),
