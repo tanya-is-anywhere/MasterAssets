@@ -12,6 +12,7 @@ import {
   SegmentedControl,
 //   TextInput,
   PasswordInput,
+  useMantineColorScheme,
 } from '@mantine/core';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -19,6 +20,7 @@ import { useAuth } from '../context/AuthContext';
 export function SettingsPage() {
   const { logout } = useAuth();
   const navigate = useNavigate();
+  const { colorScheme, setColorScheme } = useMantineColorScheme();
 
   function handleLogout() {
     logout();
@@ -63,30 +65,27 @@ export function SettingsPage() {
 
       {/* Внешний вид */}
       <Paper withBorder p="lg" radius="md" mb="xl">
-        <Title order={3} mb="md">
-          Внешний вид
-        </Title>
-        <Stack>
-          <div>
-            <Text size="sm" fw={500} mb={4}>
-              Тема
-            </Text>
-            <SegmentedControl
-              fullWidth
-              defaultValue="auto"
-              data={[
-                { value: 'light', label: 'Светлая' },
-                { value: 'dark', label: 'Тёмная' },
-                { value: 'auto', label: 'Авто' },
-              ]}
-            />
-          </div>
-          <Text size="xs" c="dimmed">
-            Переключение темы станет доступно после подключения к Mantine
-            ColorScheme.
+      <Title order={3} mb="md">
+        Внешний вид
+      </Title>
+      <Stack>
+        <div>
+          <Text size="sm" fw={500} mb={4}>
+            Тема
           </Text>
-        </Stack>
-      </Paper>
+          <SegmentedControl
+            fullWidth
+            value={colorScheme}
+            onChange={(value) => setColorScheme(value as 'light' | 'dark' | 'auto')}
+            data={[
+              { value: 'light', label: 'Светлая' },
+              { value: 'dark', label: 'Тёмная' },
+              { value: 'auto', label: 'Авто' },
+            ]}
+          />
+        </div>
+      </Stack>
+    </Paper>
 
       {/* Смена пароля */}
       <Paper withBorder p="lg" radius="md" mb="xl">
