@@ -24,8 +24,8 @@ export function AssetCard({ asset, selected, onSelect }: Props) {
     >
       <Card.Section>
         <Image
-          src={asset.filePath}
-          alt={asset.fileName}
+          src={`/static/${asset.file_path}`}
+          alt={asset.file_name}
           height={140}
           fit="contain"
           bg="var(--mantine-color-gray-0)"
@@ -33,7 +33,7 @@ export function AssetCard({ asset, selected, onSelect }: Props) {
       </Card.Section>
 
       <Text size="sm" fw={500} mt="sm" truncate>
-        {asset.fileName}
+        {asset.file_name}
       </Text>
 
       <Group gap="xs" mt={4}>

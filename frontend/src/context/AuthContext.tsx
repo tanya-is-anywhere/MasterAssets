@@ -1,15 +1,20 @@
 import {
   createContext,
+  useCallback,
   useContext,
+  useEffect,
   useState,
   type ReactNode,
 } from 'react';
+import { getMe, login as apiLogin, register as apiRegister } from '../api/auth';
+import { clearToken, getToken, setToken } from '../api/client';
 import type { User } from '../types';
 
 type AuthContextValue = {
   user: User | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
+  register: (email: string, name: string, password: string) => Promise<void>;
   logout: () => void;
 };
 
@@ -17,33 +22,56 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  async function login(email: string, _password: string): Promise<void> {
+  // При старте приложения: если есть токен — проверить его и подтянуть user
+  useEffect(() => {
+    const token = getToken();
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+    getMe()
+      .then(setUser)
+      .catch(() => clearToken())
+      .finally(() => setLoading(false));
+  }, []);
+
+  const login = useCallback(async (email: string, password: string) => {
     setLoading(true);
     try {
-      // TODO: заменить на реальный запрос к FastAPI
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      const fakeUser: User = {
-        id: 1,
-        email,
-        name: email.split('@')[0],
-        createdAt: new Date().toISOString(),
-      };
-
-      setUser(fakeUser);
+      const { access_token } = await apiLogin({ email, password });
+      setToken(access_token);
+      const me = await getMe();
+      setUser(me);
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
 
-  function logout(): void {
+  const register = useCallback(
+    async (email: string, name: string, password: string) => {
+      setLoading(true);
+      try {
+        await apiRegister({ email, name, password });
+        const { access_token } = await apiLogin({ email, password });
+        setToken(access_token);
+        const me = await getMe();
+        setUser(me);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [],
+  );
+
+  const logout = useCallback(() => {
+    clearToken();
     setUser(null);
-  }
+  }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );

@@ -29,7 +29,7 @@ export function ProfilePage() {
     );
   }
 
-  const totalBytes = assets.reduce((sum, a) => sum + a.sizeBytes, 0);
+  const totalBytes = assets.reduce((sum, a) => sum + a.size_bytes, 0);
   const totalMb = (totalBytes / 1024 / 1024).toFixed(2);
 
   return (
@@ -62,7 +62,7 @@ export function ProfilePage() {
 
             <Text size="xs" c="dimmed">
               С нами с{' '}
-              {new Date(user.createdAt).toLocaleDateString('ru-RU', {
+              {new Date(user.created_at).toLocaleDateString('ru-RU', {
                 day: 'numeric',
                 month: 'long',
                 year: 'numeric',

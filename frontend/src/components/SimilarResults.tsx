@@ -50,8 +50,8 @@ export function SimilarResults({ results, loading, error, onClose }: Props) {
           {results.map((item) => (
             <Group key={item.id} wrap="nowrap" align="flex-start">
               <Image
-                src={item.filePath}
-                alt={item.fileName}
+                src={`/static/${item.file_path}`}
+                alt={item.file_name}
                 w={60}
                 h={60}
                 fit="contain"
@@ -60,7 +60,7 @@ export function SimilarResults({ results, loading, error, onClose }: Props) {
               />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <Text size="sm" fw={500} truncate>
-                  {item.fileName}
+                  {item.file_name}
                 </Text>
                 <Badge size="xs" variant="light" color="green" mt={4}>
                   {(item.similarity * 100).toFixed(0)}% схожесть

@@ -8,9 +8,9 @@ import {
   NumberInput,
   Select,
   Text,
-  Divider,
+//   Divider,
   SegmentedControl,
-  TextInput,
+//   TextInput,
   PasswordInput,
 } from '@mantine/core';
 import { useNavigate } from 'react-router-dom';

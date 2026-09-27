@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { uploadAsset } from '../api/assets';
 import type { UploadItem } from '../types';
 
 const MAX_SIZE_MB = 10;
@@ -24,7 +25,6 @@ export function useUpload() {
         error,
       };
     });
-
     setItems((prev) => [...prev, ...newItems]);
   }
 
@@ -37,38 +37,28 @@ export function useUpload() {
   }
 
   async function uploadAll(): Promise<void> {
-    const pending = items.filter((item) => item.status === 'pending');
+    const pending = items.filter((i) => i.status === 'pending');
     if (pending.length === 0) return;
 
     setUploading(true);
-
     for (const item of pending) {
       await uploadOne(item.id);
     }
-
     setUploading(false);
   }
 
   async function uploadOne(id: string): Promise<void> {
-    updateItem(id, { status: 'uploading', progress: 0 });
+    const item = items.find((i) => i.id === id);
+    if (!item) return;
 
+    updateItem(id, { status: 'uploading', progress: 50 });
     try {
-      // TODO: заменить на реальный fetch с FormData
-      // const form = new FormData();
-      // form.append('file', item.file);
-      // await client.post('/assets/upload', form, { onUploadProgress: ... });
-
-      // Имитация прогресса
-      for (let p = 10; p <= 100; p += 10) {
-        await new Promise((r) => setTimeout(r, 100));
-        updateItem(id, { progress: p });
-      }
-
+      await uploadAsset(item.file);   // ← РЕАЛЬНЫЙ POST
       updateItem(id, { status: 'success', progress: 100 });
     } catch (err) {
       updateItem(id, {
         status: 'error',
-        error: err instanceof Error ? err.message : 'Ошибка загрузки',
+        error: err instanceof Error ? err.message : 'Upload failed',
       });
     }
   }

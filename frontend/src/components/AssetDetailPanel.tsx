@@ -37,8 +37,8 @@ export function AssetDetailPanel({ asset, onClose, onFindSimilar }: Props) {
       </Group>
 
       <Image
-        src={asset.filePath}
-        alt={asset.fileName}
+        src={`/static/${asset.file_path}`}
+        alt={asset.file_name}
         fit="contain"
         h={200}
         bg="var(--mantine-color-gray-0)"
@@ -47,7 +47,7 @@ export function AssetDetailPanel({ asset, onClose, onFindSimilar }: Props) {
 
       <Stack gap="xs" mt="md">
         <Text fw={500} truncate>
-          {asset.fileName}
+          {asset.file_name}
         </Text>
 
         <Group gap="xs">
@@ -64,10 +64,10 @@ export function AssetDetailPanel({ asset, onClose, onFindSimilar }: Props) {
           {asset.width} × {asset.height} px
         </Text>
         <Text size="sm" c="dimmed">
-          {(asset.sizeBytes / 1024).toFixed(1)} КБ
+          {(asset.size_bytes / 1024).toFixed(1)} КБ
         </Text>
         <Text size="sm" c="dimmed">
-          {new Date(asset.createdAt).toLocaleDateString('ru-RU')}
+          {new Date(asset.created_at).toLocaleDateString('ru-RU')}
         </Text>
 
         <Button fullWidth mt="md" onClick={onFindSimilar}>

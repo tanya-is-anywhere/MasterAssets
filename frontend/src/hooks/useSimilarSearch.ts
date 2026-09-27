@@ -1,6 +1,6 @@
 import { useState } from 'react';
+import { findSimilar } from '../api/assets';
 import type { SimilarAsset } from '../types';
-import { mockAssets } from '../mocks/assets';
 
 type SimilarSearchResult = {
   results: SimilarAsset[];
@@ -19,21 +19,10 @@ export function useSimilarSearch(): SimilarSearchResult {
     setLoading(true);
     setError(null);
     try {
-      // TODO: заменить на fetch(`/api/v1/assets/${assetId}/similar?limit=${limit}`)
-      await new Promise((resolve) => setTimeout(resolve, 600));
-
-      const shuffled = [...mockAssets]
-        .filter((a) => a.id !== assetId)
-        .sort(() => Math.random() - 0.5)
-        .slice(0, limit)
-        .map((asset, i) => ({
-          ...asset,
-          similarity: 0.95 - i * 0.05,
-        }));
-
-      setResults(shuffled);
+      const data = await findSimilar(assetId, limit);
+      setResults(data);
     } catch (err) {
-      setError(err instanceof Error ? err : new Error('Unknown error'));
+      setError(err instanceof Error ? err : new Error('Search failed'));
     } finally {
       setLoading(false);
     }
