@@ -11,7 +11,7 @@
 | Фронтенд      | React, Vite, Axios, TypeScript, Mantine |
 | Дизайн        | Figma, Mantine                          |
 
-## Лабораторная работа № 1
+# Лабораторная работа № 1
 ### Основные экраны
 Auth — вход + регистрация в одном экране (табы).
 
@@ -84,7 +84,7 @@ Auth — вход + регистрация в одном экране (табы)
 ![Страница-библиотеки](docs/screenshots/library-1.png)
 ![Страница-библиотеки](docs/screenshots/library-2.png)
 ![Страница-библиотеки](docs/screenshots/library-3.png)
-
+---
 # Лабораторная работа № 2
 ## Asset Similarity — Backend
 
@@ -282,3 +282,63 @@ ON assets USING hnsw (color_histogram vector_cosine_ops);
 
 - **HNSW** — приблизительный поиск ближайших соседей (ANN).
 - **`vector_cosine_ops`** — оператор **косинусного** расстояния. Должен совпадать с оператором в SQL-запросе (`<=>`).
+
+**Пример `.env`:**
+```dotenv
+DEBUG=true
+DATABASE_URL=postgresql+psycopg://asset_user:asset_password@localhost:5432/asset_db
+JWT_SECRET_KEY=change-me-in-production
+JWT_ALGORITHM=HS256
+JWT_ACCESS_TOKEN_EXPIRE_MINUTES=1440
+STORAGE_PATH=data/assets
+CORS_ORIGINS=["http://localhost:5173","http://127.0.0.1:5173"]
+```
+
+**Сгенерировать `JWT_SECRET_KEY`:**
+```bash
+python -c "import secrets; print(secrets.token_urlsafe(64))"
+```
+
+**Проверка:**
+```bash
+docker compose ps
+```
+
+Контейнер `asset_similarity_db` должен быть в статусе `Up (healthy)`.
+
+### Скриншоты работы (лаба №2)
+
+#### 1. Swagger — все эндпоинты
+![Swagger Overview](docs/screenshots/lab2/01-swagger-overview.png)
+
+#### 2. Регистрация — 201 Created
+![Register](docs/screenshots/lab2/02-register-201.png)
+
+#### 3. Логин — 200 OK с JWT
+![Login](docs/screenshots/lab2/03-login-200.png)
+
+#### 4. Загрузка ассета — 201 Created
+![Upload](docs/screenshots/lab2/04-upload-201.png)
+
+#### 5. Поиск похожих — 200 OK
+![Similar](docs/screenshots/lab2/05-similar-200.png)
+
+#### 6. Без токена — 401 Unauthorized
+![401](docs/screenshots/lab2/06-assets-401.png)
+
+#### 7. Несуществующий ассет — 404 Not Found
+![404](docs/screenshots/lab2/07-asset-404.png)
+
+#### 8. Docker — контейнер healthy
+![Docker](docs/screenshots/lab2/08-docker-ps.png)
+
+#### 9. Alembic — текущая миграция
+![Alembic](docs/screenshots/lab2/09-alembic-current.png)
+
+#### 10. Таблицы в БД — 5 штук
+![Tables](docs/screenshots/lab2/10-tables.png)
+
+#### 11. Структура таблицы `assets` с FK и индексами
+![Assets structure](docs/screenshots/lab2/11-assets-structure.png)
+
+---
