@@ -85,13 +85,95 @@ Auth — вход + регистрация в одном экране (табы)
 ![Страница-библиотеки](docs/screenshots/library-2.png)
 ![Страница-библиотеки](docs/screenshots/library-3.png)
 
-## Лабораторная работа № 2
+# Лабораторная работа № 2
+## Asset Similarity — Backend
+
+Backend для поиска стилистически похожих графических ассетов.
+
+**Стек:** Python 3.11 + FastAPI + SQLAlchemy 2.0 + Alembic + PostgreSQL 16 + pgvector + JWT
+
+---
+
+## Быстрый старт
+
+### Требования
+- Python 3.11+
+- Docker + Docker Compose
+- Git
+
+### 1. Клонирование и переход в backend
+
+```bash
+git clone <repo-url>
+cd MasterAssets/backend
+```
+```bash
+python -m venv .venv
+```
+#### Windows (PowerShell)
+```bash
+.venv\Scripts\Activate.ps1
+```
+#### Windows (CMD)
+```bash
+.venv\Scripts\activate.bat
+```
+#### Linux / macOS / Git Bash
+```bash
+source .venv/bin/activate
+```
+
+#### Установка зависимостей
+```bash
+pip install -e ".[dev]"
+```
+
+#### Переменные окружения
+```bash
+cp .env.example .env
+```
+
+Запуск PostgreSQL
+```bash
+docker compose up -d
+```
+
+Подготовка БД — миграции Alembic
+```bash
+cd backend
+alembic upgrade head
+```
+
+Что произойдёт:
+- Установится расширение vector (pgvector).
+- Создадутся таблицы:
+- - users
+- - tags
+- - assets (с колонкой color_histogram vector(96) и HNSW-индексом)
+- - asset_tags (M:N)
+- - alembic_version (служебная)
+
+Проверка (должно быть 5 таблиц)
+```bash
+docker exec -it asset_similarity_db psql -U asset_user -d asset_db -c "\dt"
+```
+
+Запуск backend
+```bash
+uvicorn app.main:app --reload --reload-dir app
+```
+
+Проверка (ответ: {"status":"ok"})
+```bash
+curl http://localhost:8000/health
+```
+
 ## Модели данных
 
 ### users
 - `id` — PK
 - `email` — уникальный, индексирован
-- `hashed_password` — bcrypt-хеш
+- `hashed_password` — Argon2-хеш (через `pwdlib`)
 - `name` — отображаемое имя
 - `created_at`, `updated_at`
 

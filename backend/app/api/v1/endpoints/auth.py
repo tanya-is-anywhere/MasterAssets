@@ -7,10 +7,14 @@ from app.api.deps import get_current_user
 from app.core.database import get_db
 from app.core.security import create_access_token
 from app.models.user import User
-from app.schemas.auth import LoginRequest, Token
 from app.schemas.user import UserCreate, UserRead
-from app.services.user import authenticate, create_user, get_user_by_email
-
+from app.schemas.auth import ChangePasswordRequest, LoginRequest, Token
+from app.services.user import (
+    authenticate,
+    change_password,
+    create_user,
+    get_user_by_email,
+)
 router = APIRouter()
 
 
@@ -53,3 +57,21 @@ def get_me(
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> User:
     return current_user
+
+@router.post("/change-password", status_code=status.HTTP_204_NO_CONTENT)
+def change_user_password(
+    data: ChangePasswordRequest,
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
+) -> None:
+    success = change_password(
+        db,
+        current_user,
+        data.current_password,
+        data.new_password,
+    )
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Current password is incorrect",
+        )

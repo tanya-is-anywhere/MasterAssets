@@ -34,3 +34,17 @@ def authenticate(db: Session, email: str, password: str) -> User | None:
     if not verify_password(password, user.hashed_password):
         return None
     return user
+
+def change_password(
+    db: Session,
+    user: User,
+    current_password: str,
+    new_password: str,
+) -> bool:
+    if not verify_password(current_password, user.hashed_password):
+        return False
+
+    user.hashed_password = hash_password(new_password)
+    db.commit()
+    db.refresh(user)
+    return True
