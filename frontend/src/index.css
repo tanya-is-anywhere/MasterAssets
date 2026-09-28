@@ -9,3 +9,23 @@ body,
   height: 100%;
   margin: 0;
 }
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.asset-card {
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.asset-card:hover {
+  box-shadow: var(--mantine-shadow-md);
+  transform: translateY(-2px);
+}

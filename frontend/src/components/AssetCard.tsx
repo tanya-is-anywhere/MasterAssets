@@ -20,6 +20,8 @@ export function AssetCard({ asset, selected, onSelect }: Props) {
           ? 'var(--mantine-color-blue-6)'
           : undefined,
         borderWidth: selected ? 2 : 1,
+        animation: 'fadeIn 0.3s ease',
+        transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
       }}
     >
       <Card.Section>

@@ -92,8 +92,6 @@ Backend для поиска стилистически похожих графи
 
 **Стек:** Python 3.11 + FastAPI + SQLAlchemy 2.0 + Alembic + PostgreSQL 16 + pgvector + JWT
 
----
-
 ## Быстрый старт
 
 ### Требования
@@ -306,7 +304,7 @@ docker compose ps
 
 Контейнер `asset_similarity_db` должен быть в статусе `Up (healthy)`.
 
-### Скриншоты работы (лаба №2)
+### Скриншоты работы (лабораторная №2)
 
 #### 1. Swagger — все эндпоинты
 ![Swagger Overview](docs/screenshots/lab2/01-swagger-overview.png)
@@ -342,3 +340,164 @@ docker compose ps
 ![Assets structure](docs/screenshots/lab2/11-assets-structure.png)
 
 ---
+# Лабораторная работа № 3 — Архитектура frontend и динамический интерфейс
+
+## Стек
+
+React 18 + TypeScript + Vite + Mantine UI + Axios + React Router.
+
+## Структура проекта (упрощённый FSD)
+
+```
+frontend/src/
+├── api/                    # HTTP-клиент и запросы к API
+│   ├── client.ts           # axios instance + JWT interceptor
+│   ├── auth.ts             # login, register, getMe, changePassword
+│   ├── assets.ts           # getAssets, upload, delete, findSimilar
+│   └── search.ts           # (зарезервировано под расширения поиска)
+├── assets/                 # статические файлы фронта (картинки)
+│   ├── hero.png
+│   ├── img.png
+│   ├── react.svg
+│   └── vite.svg
+├── components/             # переиспользуемые UI-компоненты
+│   ├── AssetCard.tsx       # карточка ассета в гриде
+│   ├── AssetGrid.tsx       # сетка карточек + состояния loading/empty
+│   ├── AssetDetailPanel.tsx    # правая панель с деталями
+│   ├── SimilarResults.tsx  # список похожих ассетов
+│   ├── UploadDropzone.tsx  # drag-and-drop зона
+│   ├── UploadItemRow.tsx   # строка одного файла в списке загрузки
+│   └── Header.tsx          # хедер с навигацией и меню пользователя
+├── context/                # глобальное состояние
+│   └── AuthContext.tsx     # user, login, register, logout
+├── hooks/                  # бизнес-логика (feature-level)
+│   ├── useAssets.ts        # загрузка списка ассетов
+│   ├── useUpload.ts        # логика загрузки файлов
+│   └── useSimilarSearch.ts # логика поиска похожих
+├── layouts/                # макеты страниц
+│   └── MainLayout.tsx      # AppShell + Header + Outlet
+├── pages/                  # 5 страниц-экранов
+│   ├── AuthPage.tsx        # /auth — вход + регистрация
+│   ├── LibraryPage.tsx     # /library — грид + панель деталей
+│   ├── UploadPage.tsx      # /upload — загрузка файлов
+│   ├── ProfilePage.tsx     # /profile — профиль пользователя
+│   └── SettingsPage.tsx    # /settings — настройки, тема, смена пароля
+├── types/                  # TypeScript-типы (зеркало Pydantic)
+│   ├── index.ts            # реэкспорт
+│   ├── api.ts              # ApiError, Paginated
+│   ├── assets.ts           # Asset, SimilarAsset
+│   ├── user.ts             # User
+│   └── upload.ts           # UploadItem, UploadStatus
+├── App.tsx                 # роутинг (BrowserRouter + Routes)
+├── App.css                 # стили приложения (не используются, для совместимости)
+├── main.tsx                # точка входа (MantineProvider + AuthProvider)
+├── index.css               # глобальные стили
+└── vite-env.d.ts           # типы Vite (import.meta.env, .svg)
+```
+
+### Соответствие слоям FSD
+
+| Слой FSD | В проекте | Назначение |
+|---|---|---|
+| **app** | `main.tsx`, `App.tsx` | Настройка приложения: провайдеры, роутинг |
+| **pages** | `pages/` | Экраны, привязанные к URL |
+| **features** | `hooks/`, `api/` | Пользовательские действия (login, upload, search) |
+| **entities** | `types/` | Бизнес-сущности (Asset, User) |
+| **shared** | `components/`, `layouts/` | Переиспользуемые UI-компоненты, макеты |
+
+**Принцип:** каждый слой знает **только про свой уровень**. Страницы **собирают** компоненты, хуки **дают данные**, API **ходит на бэк**, типы **описывают форму данных**.
+
+## Страницы
+
+| URL | Компонент | Назначение |
+|---|---|---|
+| `/auth` | `AuthPage` | Вход + регистрация (табы) |
+| `/library` | `LibraryPage` | Грид ассетов + панель деталей + поиск похожих |
+| `/upload` | `UploadPage` | Drag-and-drop загрузка с прогрессом |
+| `/profile` | `ProfilePage` | Профиль, статистика пользователя |
+| `/settings` | `SettingsPage` | Настройки, тёмная тема, смена пароля |
+
+## Интерактивные элементы и состояние
+
+### Управление состоянием
+
+- **Глобальное** — `AuthContext` (текущий пользователь, login/logout).
+- **Локальное** — `useState` в компонентах (выбор ассета, форма).
+- **Данные** — кастомные хуки (`useAssets`, `useUpload`, `useSimilarSearch`).
+
+### Формы и валидация
+
+- **AuthPage** — email (валидация формата), пароль (≥6 символов), повтор пароля.
+- **UploadPage** — валидация MIME-типа и размера (<10 МБ) на клиенте.
+- **SettingsPage** — валидация смены пароля, обработка 400 от бэка.
+
+### Состояния интерфейса
+
+Для **всех** запросов к API обрабатываются:
+
+- **Loading** — `<Loader>` или `<Skeleton>`.
+- **Error** — `<Alert color="red">` с сообщением.
+- **Empty** — «Библиотека пуста» / «Ничего не найдено».
+- **Success** — `<Alert color="green">` для действий (смена пароля).
+
+### Реакция на действия пользователя
+
+- **Клик по карточке** → выделение + загрузка деталей.
+- **Drag-and-drop** → появление в списке загрузки.
+- **Отправка формы** → спиннер на кнопке.
+- **Переключение темы** → мгновенное применение + сохранение в `localStorage`.
+
+### Типизация
+
+- **Строгий режим** TypeScript (`strict: true`).
+- **Все API-ответы** типизированы в `types/`.
+- **Типы — зеркало** Pydantic-схем бэкенда (snake_case).
+- **Пропсы компонентов** типизированы через `type Props = {...}`.
+
+## Анимации и переходы
+
+- **Hover-эффекты** на карточках (`Card` с `shadow="md"`).
+- **Skeleton-заглушки** при загрузке библиотеки.
+- **Transition** (Mantine) на появление контента.
+- **SegmentedControl, Tabs** — встроенные плавные переходы.
+- **Меню пользователя** — анимация открытия (Mantine).
+
+## Запуск frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Приложение — на `http://localhost:5173`.
+**Требует** запущенного backend на `http://localhost:8000`.
+
+### Скриншоты работы (лабораторная №3)
+
+#### Skeleton-заглушки при загрузке библиотеки
+![Skeleton Loading](docs/screenshots/lab3/01-skeleton-loading.png)
+
+#### Библиотека ассетов с реальными данными
+![Library](docs/screenshots/lab3/02-library.png)
+
+#### Панель похожих ассетов (top-N по косинусному расстоянию)
+![Similar](docs/screenshots/lab3/03-similar.png)
+
+#### Загрузка файлов через drag-and-drop
+![Upload](docs/screenshots/lab3/04-upload.png)
+
+#### Страница входа
+![Auth Login](docs/screenshots/lab3/05-auth-login.png)
+
+#### Страница регистрации
+![Auth Register](docs/screenshots/lab3/06-auth-register.png)
+
+#### Настройки — тёмная тема
+![Settings Dark](docs/screenshots/lab3/07-settings-dark.png)
+
+#### Смена пароля — успешное выполнение
+![Password Change Success](docs/screenshots/lab3/08-password-change-success.png)
+
+#### Смена пароля — ошибка валидации
+![Password Change Error](docs/screenshots/lab3/09-password-change-error.png)

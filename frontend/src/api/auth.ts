@@ -17,6 +17,11 @@ export type TokenResponse = {
   token_type: string;
 };
 
+export type ChangePasswordRequest = {
+  current_password: string;
+  new_password: string;
+};
+
 export async function login(data: LoginRequest): Promise<TokenResponse> {
   const { data: result } = await client.post<TokenResponse>('/auth/login', data);
   return result;
@@ -30,4 +35,10 @@ export async function register(data: RegisterRequest): Promise<User> {
 export async function getMe(): Promise<User> {
   const { data } = await client.get<User>('/auth/me');
   return data;
+}
+
+export async function changePassword(
+  data: ChangePasswordRequest,
+): Promise<void> {
+  await client.post('/auth/change-password', data);
 }

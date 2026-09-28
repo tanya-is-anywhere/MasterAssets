@@ -1,4 +1,4 @@
-import { SimpleGrid, Center, Loader, Text } from '@mantine/core';
+import { SimpleGrid, Center, Text, Skeleton } from '@mantine/core';
 import { AssetCard } from './AssetCard';
 import type { Asset } from '../types';
 
@@ -11,12 +11,14 @@ type Props = {
 
 export function AssetGrid({ assets, selectedId, loading, onSelect }: Props) {
   if (loading) {
-    return (
-      <Center py="xl">
-        <Loader />
-      </Center>
-    );
-  }
+  return (
+    <SimpleGrid cols={{ base: 2, sm: 3, md: 4, lg: 5 }} spacing="md">
+      {Array.from({ length: 10 }).map((_, i) => (
+        <Skeleton key={i} height={180} radius="md" animate />
+      ))}
+    </SimpleGrid>
+  );
+}
 
   if (assets.length === 0) {
     return (
