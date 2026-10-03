@@ -16,9 +16,15 @@ type Props = {
   asset: Asset | null;
   onClose: () => void;
   onFindSimilar: () => void;
+  onDelete: () => void;
 };
 
-export function AssetDetailPanel({ asset, onClose, onFindSimilar }: Props) {
+export function AssetDetailPanel({
+  asset,
+  onClose,
+  onFindSimilar,
+  onDelete,
+}: Props) {
   if (!asset) {
     return (
       <Paper withBorder p="md" radius="md" h="100%">
@@ -72,6 +78,10 @@ export function AssetDetailPanel({ asset, onClose, onFindSimilar }: Props) {
 
         <Button fullWidth mt="md" onClick={onFindSimilar}>
           Найти похожие
+        </Button>
+
+        <Button color="red" variant="light" fullWidth onClick={onDelete}>
+          Удалить
         </Button>
       </Stack>
     </Paper>

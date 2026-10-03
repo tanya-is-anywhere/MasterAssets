@@ -1,14 +1,15 @@
 import { useState } from 'react';
-import { Grid, Title, Group, Text } from '@mantine/core';
+import { Button, Grid, Group, Modal, Text, Title } from '@mantine/core';
 import { AssetGrid } from '../components/AssetGrid';
 import { AssetDetailPanel } from '../components/AssetDetailPanel';
 import { SimilarResults } from '../components/SimilarResults';
 import { useAssets } from '../hooks/useAssets';
 import { useSimilarSearch } from '../hooks/useSimilarSearch';
+import { deleteAsset } from '../api/assets';
 import type { Asset } from '../types';
 
 export function LibraryPage() {
-  const { assets, loading, error } = useAssets();
+  const { assets, loading, error, refresh } = useAssets();
   const {
     results,
     loading: similarLoading,
@@ -19,6 +20,8 @@ export function LibraryPage() {
 
   const [selected, setSelected] = useState<Asset | null>(null);
   const [showSimilar, setShowSimilar] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   function handleSelect(asset: Asset) {
     setSelected(asset);
@@ -30,6 +33,20 @@ export function LibraryPage() {
     if (!selected) return;
     setShowSimilar(true);
     await search(selected.id, 5);
+  }
+
+  async function handleDelete() {
+    if (!selected) return;
+    setDeleteError(null);
+    try {
+      await deleteAsset(selected.id);
+      setSelected(null);
+      setShowSimilar(false);
+      setConfirmOpen(false);
+      await refresh();
+    } catch {
+      setDeleteError('Не удалось удалить ассет');
+    }
   }
 
   function handleCloseSimilar() {
@@ -58,6 +75,12 @@ export function LibraryPage() {
         </Text>
       )}
 
+      {deleteError && (
+        <Text c="red" mb="md">
+          {deleteError}
+        </Text>
+      )}
+
       <Grid>
         <Grid.Col span={{ base: 12, md: 8 }}>
           <AssetGrid
@@ -81,10 +104,27 @@ export function LibraryPage() {
               asset={selected}
               onClose={handleCloseDetail}
               onFindSimilar={handleFindSimilar}
+              onDelete={() => setConfirmOpen(true)}
             />
           )}
         </Grid.Col>
       </Grid>
+
+      <Modal
+        opened={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        title="Удалить ассет?"
+      >
+        <Text>Действие необратимо.</Text>
+        <Group justify="flex-end" mt="md">
+          <Button variant="default" onClick={() => setConfirmOpen(false)}>
+            Отмена
+          </Button>
+          <Button color="red" onClick={handleDelete}>
+            Удалить
+          </Button>
+        </Group>
+      </Modal>
     </>
   );
 }
