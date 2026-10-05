@@ -12,7 +12,7 @@ BACKEND_ROOT = Path(__file__).resolve().parent.parent
 app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,
-    description="Backend for stylistic asset similarity search",
+    description="Backend для поиска стилистически похожих ассетов",
 )
 
 app.add_middleware(
