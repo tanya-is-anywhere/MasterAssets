@@ -350,94 +350,98 @@ React 18 + TypeScript + Vite + Mantine UI + Axios + React Router.
 
 ```
 frontend/src/
-├── app/                          # Слой App: инициализация приложения
-│   ├── App.tsx                   # Роутинг (BrowserRouter + Routes)
-│   └── main.tsx                  # Точка входа, провайдеры (Mantine, Auth)
+├── app/
+│   ├── main.tsx                      # Точка входа приложения: createRoot + монтирование в DOM
+│   ├── providers/
+│   │   └── index.tsx                 # AppProviders: обёртка MantineProvider + AuthProvider
+│   ├── router/
+│   │   └── index.tsx                 # BrowserRouter + Routes: маршрутизация приложения
+│   └── styles/
+│       └── index.css                 # Глобальные стили: сбросы, @keyframes fadeIn, hover-эффекты
 │
-├── widgets/                      # Слой Widgets: крупные блоки интерфейса
-│   ├── Header/                   # Шапка с навигацией и меню пользователя
-│   │   ├── ui/Header.tsx
-│   │   └── index.ts              # Public API
-│   ├── MainLayout/               # Обёртка страниц (AppShell + Outlet)
-│   │   ├── ui/MainLayout.tsx
-│   │   └── index.ts              # Public API
-│   └── index.ts                  # Public API слоя
+├── widgets/
+│   ├── Header/
+│   │   ├── ui/Header.tsx             # Шапка: логотип, навигация, меню пользователя
+│   │   └── index.ts                  # Public API слайса Header
+│   ├── MainLayout/
+│   │   ├── ui/MainLayout.tsx         # Общая рамка страниц: AppShell + Header + Outlet
+│   │   └── index.ts                  # Public API слайса MainLayout
+│   └── index.ts                      # Public API слоя Widgets
 │
-├── pages/                        # Слой Pages: экраны, привязанные к URL
-│   ├── auth/                     # /auth — вход + регистрация
-│   │   ├── ui/AuthPage.tsx
-│   │   └── index.ts
-│   ├── library/                  # /library — грид + панель + поиск
-│   │   ├── ui/LibraryPage.tsx
-│   │   └── index.ts
-│   ├── profile/                  # /profile — данные пользователя
-│   │   ├── ui/ProfilePage.tsx
-│   │   └── index.ts
-│   ├── settings/                 # /settings — тема, смена пароля
-│   │   ├── ui/SettingsPage.tsx
-│   │   └── index.ts
-│   ├── upload/                   # /upload — drag-and-drop загрузка
-│   │   ├── ui/UploadPage.tsx
-│   │   └── index.ts
-│   └── index.ts                  # Public API слоя
+├── pages/
+│   ├── auth/
+│   │   ├── ui/AuthPage.tsx           # /auth — форма входа и регистрации (табы)
+│   │   └── index.ts                  # Public API слайса auth
+│   ├── library/
+│   │   ├── ui/LibraryPage.tsx        # /library — грид ассетов, панель деталей, поиск похожих
+│   │   └── index.ts                  # Public API слайса library
+│   ├── profile/
+│   │   ├── ui/ProfilePage.tsx        # /profile — данные пользователя и статистика
+│   │   └── index.ts                  # Public API слайса profile
+│   ├── settings/
+│   │   ├── ui/SettingsPage.tsx       # /settings — параметры поиска, тема, смена пароля
+│   │   └── index.ts                  # Public API слайса settings
+│   ├── upload/
+│   │   ├── ui/UploadPage.tsx         # /upload — drag-and-drop загрузка файлов с прогрессом
+│   │   └── index.ts                  # Public API слайса upload
+│   └── index.ts                      # Public API слоя Pages
 │
-├── features/                     # Слой Features: действия пользователя
-│   ├── assets/                   # Просмотр и CRUD ассетов
-│   │   ├── api/index.ts          # getAssets, deleteAsset, updateAsset
-│   │   ├── model/useAssets.ts    # Хук загрузки списка
-│   │   └── index.ts
-│   ├── auth/                     # Аутентификация
-│   │   ├── api/index.ts          # login, register, getMe, changePassword
-│   │   ├── model/AuthContext.tsx # Провайдер + useAuth
-│   │   └── index.ts
-│   ├── search/                   # Поиск похожих
-│   │   ├── api/index.ts          # findSimilar
-│   │   ├── model/useSimilarSearch.ts
-│   │   └── index.ts
-│   └── upload/                   # Загрузка файлов
-│       ├── api/index.ts          # uploadAsset
+├── features/
+│   ├── assets/
+│   │   ├── api/index.ts              # HTTP-функции: getAssets, deleteAsset, updateAsset
+│   │   ├── model/useAssets.ts        # Хук useAssets: загрузка списка + refresh
+│   │   └── index.ts                  # Public API фичи assets
+│   ├── auth/
+│   │   ├── api/index.ts              # HTTP-функции: login, register, getMe, changePassword
+│   │   ├── model/AuthContext.tsx     # AuthProvider + хук useAuth
+│   │   └── index.ts                  # Public API фичи auth
+│   ├── search/
+│   │   ├── api/index.ts              # HTTP-функция findSimilar
+│   │   ├── model/useSimilarSearch.ts # Хук useSimilarSearch: поиск похожих
+│   │   └── index.ts                  # Public API фичи search
+│   └── upload/
+│       ├── api/index.ts              # HTTP-функция uploadAsset
 │       ├── model/
-│       │   ├── useUpload.ts
-│       │   └── types.ts          # UploadItem, UploadStatus
-│       ├── ui/UploadItemRow.tsx  # Строка файла в списке
-│       └── index.ts
+│       │   ├── useUpload.ts          # Хук useUpload: очередь, прогресс, валидация
+│       │   └── types.ts              # Типы UploadItem, UploadStatus
+│       ├── ui/UploadItemRow.tsx      # Строка одного файла в списке загрузки
+│       └── index.ts                  # Public API фичи upload
 │
-├── entities/                     # Слой Entities: бизнес-сущности
-│   ├── asset/                    # Asset, SimilarAsset
-│   │   ├── types.ts
-│   │   └── index.ts
-│   ├── user/                     # User
-│   │   ├── types.ts
-│   │   └── index.ts
-│   └── index.ts                  # Public API слоя
+├── entities/
+│   ├── asset/
+│   │   ├── model/types.ts            # Типы Asset, SimilarAsset
+│   │   └── index.ts                  # Public API слайса asset
+│   ├── user/
+│   │   ├── model/types.ts            # Тип User
+│   │   └── index.ts                  # Public API слайса user
+│   └── index.ts                      # Public API слоя Entities
 │
-├── shared/                       # Слой Shared: переиспользуемое
-│   ├── api/                      # HTTP-клиент
-│   │   ├── client.ts             # axios + JWT interceptor
-│   │   ├── types.ts              # ApiError, Paginated
-│   │   └── index.ts
-│   ├── ui/                       # UI-кит
-│   │   ├── AssetCard.tsx
-│   │   ├── AssetGrid.tsx
-│   │   ├── AssetDetailPanel.tsx
-│   │   ├── SimilarResults.tsx
-│   │   ├── UploadDropzone.tsx
-│   │   └── index.ts
-│   ├── lib/                      # Чистые утилиты
-│   │   ├── formatBytes.ts
-│   │   ├── formatDate.ts
-│   │   ├── getErrorMessage.ts
-│   │   ├── getErrorStatus.ts
-│   │   ├── getInitials.ts
-│   │   └── index.ts
-│   └── assets/                   # Статические файлы
-│       ├── hero.png
-│       ├── img.png
-│       ├── react.svg
-│       └── vite.svg
+├── shared/
+│   ├── api/
+│   │   ├── client.ts                 # axios-инстанс + interceptors (JWT, 401)
+│   │   ├── types.ts                  # Типы ApiError, Paginated
+│   │   └── index.ts                  # Public API сегмента shared/api
+│   ├── ui/
+│   │   ├── AssetCard.tsx             # Карточка ассета в гриде
+│   │   ├── AssetGrid.tsx             # Сетка карточек + skeleton/empty
+│   │   ├── AssetDetailPanel.tsx      # Правая панель с деталями ассета
+│   │   ├── SimilarResults.tsx        # Список похожих ассетов с процентом схожести
+│   │   ├── UploadDropzone.tsx        # Drag-and-drop зона для файлов
+│   │   └── index.ts                  # Public API сегмента shared/ui
+│   ├── lib/
+│   │   ├── formatBytes.ts            # Форматирование размера в Б/КБ/МБ/ГБ
+│   │   ├── formatDate.ts             # Форматирование даты (короткое и длинное)
+│   │   ├── getErrorMessage.ts        # Извлечение текста ошибки из unknown
+│   │   ├── getErrorStatus.ts         # Извлечение HTTP-статуса из ошибки axios
+│   │   ├── getInitials.ts            # Инициал для аватара
+│   │   └── index.ts                  # Public API сегмента shared/lib
+│   └── assets/
+│       ├── hero.png                  # Тестовая картинка
+│       ├── img.png                   # Тестовая картинка
+│       ├── react.svg                 # Логотип React (из шаблона)
+│       └── vite.svg                  # Логотип Vite (из шаблона)
 │
-├── index.css                     # Глобальные стили
-└── vite-env.d.ts                 # Типы Vite
+└── vite-env.d.ts                     # Типы Vite (import.meta.env, импорт ассетов)
 ```
 
 ### Правила FSD

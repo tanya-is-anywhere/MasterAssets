@@ -1,12 +1,12 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { MainLayout } from '../widgets';
+import { MainLayout } from '../../widgets';
 import {
   AuthPage,
   LibraryPage,
   UploadPage,
   ProfilePage,
   SettingsPage,
-} from '../pages';
+} from '../../pages';
 
 export function App() {
   return (

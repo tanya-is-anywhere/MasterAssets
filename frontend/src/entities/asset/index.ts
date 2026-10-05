@@ -1,1 +1,1 @@
-export type { Asset, SimilarAsset } from './types';
+export type { Asset, SimilarAsset } from './model/types';

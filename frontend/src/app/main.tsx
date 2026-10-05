@@ -1,19 +1,16 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { MantineProvider } from '@mantine/core';
-import { AuthProvider } from '../features/auth/model/AuthContext';
-import { App } from './App';
+import { AppProviders } from './providers';
+import { App } from './router';
 
 import '@mantine/core/styles.css';
 import '@mantine/dropzone/styles.css';
-import '../index.css';
+import './styles/index.css';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <MantineProvider defaultColorScheme="auto">
-      <AuthProvider>
-        <App />
-      </AuthProvider>
-    </MantineProvider>
+    <AppProviders>
+      <App />
+    </AppProviders>
   </StrictMode>,
 );
