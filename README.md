@@ -346,54 +346,106 @@ docker compose ps
 
 React 18 + TypeScript + Vite + Mantine UI + Axios + React Router.
 
-## Структура проекта (упрощённый FSD)
+## Структура frontend (полный Feature-Sliced Design)
 
 ```
 frontend/src/
-├── api/                    # HTTP-клиент и запросы к API
-│   ├── client.ts           # axios instance + JWT interceptor
-│   ├── auth.ts             # login, register, getMe, changePassword
-│   ├── assets.ts           # getAssets, upload, delete, findSimilar
-│   └── search.ts           # (зарезервировано под расширения поиска)
-├── assets/                 # статические файлы фронта (картинки)
-│   ├── hero.png
-│   ├── img.png
-│   ├── react.svg
-│   └── vite.svg
-├── components/             # переиспользуемые UI-компоненты
-│   ├── AssetCard.tsx       # карточка ассета в гриде
-│   ├── AssetGrid.tsx       # сетка карточек + состояния loading/empty
-│   ├── AssetDetailPanel.tsx    # правая панель с деталями
-│   ├── SimilarResults.tsx  # список похожих ассетов
-│   ├── UploadDropzone.tsx  # drag-and-drop зона
-│   ├── UploadItemRow.tsx   # строка одного файла в списке загрузки
-│   └── Header.tsx          # хедер с навигацией и меню пользователя
-├── context/                # глобальное состояние
-│   └── AuthContext.tsx     # user, login, register, logout
-├── hooks/                  # бизнес-логика (feature-level)
-│   ├── useAssets.ts        # загрузка списка ассетов
-│   ├── useUpload.ts        # логика загрузки файлов
-│   └── useSimilarSearch.ts # логика поиска похожих
-├── layouts/                # макеты страниц
-│   └── MainLayout.tsx      # AppShell + Header + Outlet
-├── pages/                  # 5 страниц-экранов
-│   ├── AuthPage.tsx        # /auth — вход + регистрация
-│   ├── LibraryPage.tsx     # /library — грид + панель деталей
-│   ├── UploadPage.tsx      # /upload — загрузка файлов
-│   ├── ProfilePage.tsx     # /profile — профиль пользователя
-│   └── SettingsPage.tsx    # /settings — настройки, тема, смена пароля
-├── types/                  # TypeScript-типы (зеркало Pydantic)
-│   ├── index.ts            # реэкспорт
-│   ├── api.ts              # ApiError, Paginated
-│   ├── assets.ts           # Asset, SimilarAsset
-│   ├── user.ts             # User
-│   └── upload.ts           # UploadItem, UploadStatus
-├── App.tsx                 # роутинг (BrowserRouter + Routes)
-├── App.css                 # стили приложения (не используются, для совместимости)
-├── main.tsx                # точка входа (MantineProvider + AuthProvider)
-├── index.css               # глобальные стили
-└── vite-env.d.ts           # типы Vite (import.meta.env, .svg)
+├── app/                          # Слой App: инициализация приложения
+│   ├── App.tsx                   # Роутинг (BrowserRouter + Routes)
+│   └── main.tsx                  # Точка входа, провайдеры (Mantine, Auth)
+│
+├── widgets/                      # Слой Widgets: крупные блоки интерфейса
+│   ├── Header/                   # Шапка с навигацией и меню пользователя
+│   │   ├── ui/Header.tsx
+│   │   └── index.ts              # Public API
+│   ├── MainLayout/               # Обёртка страниц (AppShell + Outlet)
+│   │   ├── ui/MainLayout.tsx
+│   │   └── index.ts              # Public API
+│   └── index.ts                  # Public API слоя
+│
+├── pages/                        # Слой Pages: экраны, привязанные к URL
+│   ├── auth/                     # /auth — вход + регистрация
+│   │   ├── ui/AuthPage.tsx
+│   │   └── index.ts
+│   ├── library/                  # /library — грид + панель + поиск
+│   │   ├── ui/LibraryPage.tsx
+│   │   └── index.ts
+│   ├── profile/                  # /profile — данные пользователя
+│   │   ├── ui/ProfilePage.tsx
+│   │   └── index.ts
+│   ├── settings/                 # /settings — тема, смена пароля
+│   │   ├── ui/SettingsPage.tsx
+│   │   └── index.ts
+│   ├── upload/                   # /upload — drag-and-drop загрузка
+│   │   ├── ui/UploadPage.tsx
+│   │   └── index.ts
+│   └── index.ts                  # Public API слоя
+│
+├── features/                     # Слой Features: действия пользователя
+│   ├── assets/                   # Просмотр и CRUD ассетов
+│   │   ├── api/index.ts          # getAssets, deleteAsset, updateAsset
+│   │   ├── model/useAssets.ts    # Хук загрузки списка
+│   │   └── index.ts
+│   ├── auth/                     # Аутентификация
+│   │   ├── api/index.ts          # login, register, getMe, changePassword
+│   │   ├── model/AuthContext.tsx # Провайдер + useAuth
+│   │   └── index.ts
+│   ├── search/                   # Поиск похожих
+│   │   ├── api/index.ts          # findSimilar
+│   │   ├── model/useSimilarSearch.ts
+│   │   └── index.ts
+│   └── upload/                   # Загрузка файлов
+│       ├── api/index.ts          # uploadAsset
+│       ├── model/
+│       │   ├── useUpload.ts
+│       │   └── types.ts          # UploadItem, UploadStatus
+│       ├── ui/UploadItemRow.tsx  # Строка файла в списке
+│       └── index.ts
+│
+├── entities/                     # Слой Entities: бизнес-сущности
+│   ├── asset/                    # Asset, SimilarAsset
+│   │   ├── types.ts
+│   │   └── index.ts
+│   ├── user/                     # User
+│   │   ├── types.ts
+│   │   └── index.ts
+│   └── index.ts                  # Public API слоя
+│
+├── shared/                       # Слой Shared: переиспользуемое
+│   ├── api/                      # HTTP-клиент
+│   │   ├── client.ts             # axios + JWT interceptor
+│   │   ├── types.ts              # ApiError, Paginated
+│   │   └── index.ts
+│   ├── ui/                       # UI-кит
+│   │   ├── AssetCard.tsx
+│   │   ├── AssetGrid.tsx
+│   │   ├── AssetDetailPanel.tsx
+│   │   ├── SimilarResults.tsx
+│   │   ├── UploadDropzone.tsx
+│   │   └── index.ts
+│   ├── lib/                      # Чистые утилиты
+│   │   ├── formatBytes.ts
+│   │   ├── formatDate.ts
+│   │   ├── getErrorMessage.ts
+│   │   ├── getErrorStatus.ts
+│   │   ├── getInitials.ts
+│   │   └── index.ts
+│   └── assets/                   # Статические файлы
+│       ├── hero.png
+│       ├── img.png
+│       ├── react.svg
+│       └── vite.svg
+│
+├── index.css                     # Глобальные стили
+└── vite-env.d.ts                 # Типы Vite
 ```
+
+### Правила FSD
+
+- **6 слоёв** — `app`, `widgets`, `pages`, `features`, `entities`, `shared`.
+- **Правило импортов** — слой импортирует **только** из слоёв **ниже**.
+- **Public API** — `index.ts` в каждом слайсе и сегменте `shared`.
+- **Сегменты** — `api/`, `model/`, `ui/`.
 
 ### Соответствие слоям FSD
 
@@ -421,10 +473,13 @@ frontend/src/
 
 ### Управление состоянием
 
-- **Глобальное** — `AuthContext` (текущий пользователь, login/logout).
+- **Глобальное** — `AuthContext` (в `features/auth/model/`).
 - **Локальное** — `useState` в компонентах (выбор ассета, форма).
-- **Данные** — кастомные хуки (`useAssets`, `useUpload`, `useSimilarSearch`).
-
+- **Данные** — кастомные хуки:
+  - `useAssets` (в `features/assets/model/`)
+  - `useUpload` (в `features/upload/model/`)
+  - `useSimilarSearch` (в `features/search/model/`)
+  
 ### Формы и валидация
 
 - **AuthPage** — email (валидация формата), пароль (≥6 символов), повтор пароля.
@@ -450,7 +505,9 @@ frontend/src/
 ### Типизация
 
 - **Строгий режим** TypeScript (`strict: true`).
-- **Все API-ответы** типизированы в `types/`.
+- **Сущности** (`Asset`, `User`, `SimilarAsset`) — в `entities/*/types.ts`.
+- **Технические типы API** (`ApiError`, `Paginated`) — в `shared/api/types.ts`.
+- **Типы upload-логики** (`UploadItem`, `UploadStatus`) — в `features/upload/model/types.ts`.
 - **Типы — зеркало** Pydantic-схем бэкенда (snake_case).
 - **Пропсы компонентов** типизированы через `type Props = {...}`.
 
