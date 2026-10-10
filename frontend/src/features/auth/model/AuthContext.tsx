@@ -7,7 +7,7 @@ import {
   type ReactNode,
 } from 'react';
 import { getMe, login as apiLogin, register as apiRegister } from '../api';
-import { clearToken, getToken, setToken } from '../../../shared/api';
+import { clearTokens, getToken, setTokens } from '../../../shared/api';
 import type { User } from '../../../entities';
 
 type AuthContextValue = {
@@ -32,15 +32,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     getMe()
       .then(setUser)
-      .catch(() => clearToken())
+      .catch(() => clearTokens())
       .finally(() => setLoading(false));
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {
     setLoading(true);
     try {
-      const { access_token } = await apiLogin({ email, password });
-      setToken(access_token);
+      const { access_token, refresh_token } = await apiLogin({ email, password });
+      setTokens(access_token, refresh_token);
       const me = await getMe();
       setUser(me);
     } finally {
@@ -53,8 +53,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(true);
       try {
         await apiRegister({ email, name, password });
-        const { access_token } = await apiLogin({ email, password });
-        setToken(access_token);
+        const { access_token, refresh_token } = await apiLogin({ email, password });
+        setTokens(access_token, refresh_token);
         const me = await getMe();
         setUser(me);
       } finally {
@@ -65,7 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const logout = useCallback(() => {
-    clearToken();
+    clearTokens();
     setUser(null);
   }, []);
 

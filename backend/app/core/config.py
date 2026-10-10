@@ -22,7 +22,8 @@ class Settings(BaseSettings):
     # JWT
     JWT_SECRET_KEY: str = "change-me-in-production-please-use-openssl-rand"
     JWT_ALGORITHM: str = "HS256"
-    JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24  # 1 день
+    JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    JWT_REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 
     # Storage
     STORAGE_PATH: str = "data/assets"

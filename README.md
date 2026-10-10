@@ -562,3 +562,137 @@ npm run dev
 
 #### Смена пароля — ошибка валидации
 ![Password Change Error](docs/screenshots/lab3/09-password-change-error.png)
+
+---
+# Лабораторная работа № 4 — Аутентификация и авторизация
+
+## Стек
+
+**Backend:** FastAPI · SQLAlchemy 2.0 · Alembic · PostgreSQL 16 · JWT (python-jose) · Argon2 (pwdlib) · OAuth2 refresh token flow.
+**Frontend:** React 18 · TypeScript · Vite · Mantine UI · Axios (interceptors) · React Router.
+
+## Цели
+
+1. Реализовать совместную работу frontend и backend при входе пользователя.
+2. Организовать доступ к защищённым ресурсам с использованием access и refresh токенов.
+
+## Два токена
+
+| Токен | Срок | Назначение | Где хранится |
+|---|---|---|---|
+| **Access** | **30 минут** | Доступ к защищённым эндпоинтам API (`Authorization: Bearer`) | `localStorage` |
+| **Refresh** | **7 дней** | Обновление access без повторного ввода пароля | `localStorage` |
+
+**Почему два токена:**
+- **Access** короткий — если утечёт, окно злоупотребления минимально.
+- **Refresh** длинный — пользователь логинится редко (раз в неделю), UX удобный.
+- **Refresh** передаётся только на `/auth/refresh`, не ходит по всем эндпоинтам.
+
+**Клиент ничего не замечает:** axios interceptor ловит 401, автоматически зовёт `/auth/refresh`, обновляет токены и повторяет исходный запрос.
+
+## Backend
+
+### Файлы
+
+| Файл | Ответственность |
+|---|---|
+| `app/core/config.py` | Настройки: `JWT_ACCESS_TOKEN_EXPIRE_MINUTES=30`, `JWT_REFRESH_TOKEN_EXPIRE_DAYS=7` |
+| `app/core/security.py` | `create_access_token` (`type: "access"`), `create_refresh_token` (`type: "refresh"`), `decode_token(token, expected_type)` |
+| `app/schemas/auth.py` | `TokenPair`, `RefreshRequest`, `LoginRequest`, `ChangePasswordRequest` |
+| `app/api/v1/endpoints/auth.py` | `/register`, `/login`, `/refresh`, `/me`, `/change-password`, `/logout` |
+| `app/api/deps.py` | `get_current_user` — проверяет `type == "access"` через `decode_token` |
+
+### Эндпоинты
+
+| Метод | Путь | Описание |
+|---|---|---|
+| `POST` | `/api/v1/auth/register` | Регистрация (хеширование Argon2) |
+| `POST` | `/api/v1/auth/login` | Вход, возвращает `{access_token, refresh_token, token_type}` |
+| `POST` | `/api/v1/auth/refresh` | Принимает refresh, возвращает новую пару (rotation) |
+| `GET` | `/api/v1/auth/me` | Текущий пользователь (требует access) |
+| `POST` | `/api/v1/auth/change-password` | Смена пароля (требует access) |
+| `POST` | `/api/v1/auth/logout` | Stateless — очистка на клиенте |
+
+### Ключевые проверки безопасности
+
+- **Access** и **refresh** различаются полем `type` в JWT payload.
+- `get_current_user` использует `decode_token(token, "access")` — **refresh на защищённых эндпоинтах не работает** (401).
+- **Rotation refresh** — при каждом `/refresh` выдаётся новая пара, старая refresh становится недействительной (по подписи `iat`, если добавить проверку).
+- **Argon2** для хеширования паролей — устойчив к GPU-атакам.
+
+## Frontend
+
+### Файлы
+
+| Файл | Ответственность |
+|---|---|
+| `shared/api/client.ts` | axios + interceptors: подстановка Bearer, авто-refresh при 401, `setTokens`, `clearTokens`, `getToken`, `getRefreshToken` |
+| `features/auth/api/index.ts` | `login`, `register`, `getMe`, `changePassword`; тип `TokenResponse` с `refresh_token` |
+| `features/auth/model/AuthContext.tsx` | `AuthProvider`, `useAuth`, вызов `setTokens`/`clearTokens` |
+| `features/auth/index.ts` | Public API фичи |
+
+### Авто-refresh в interceptor
+
+При 401 interceptor:
+1. Проверяет флаг `_retry` (защита от цикла).
+2. Берёт `refresh_token` из `localStorage`.
+3. Делает `POST /api/v1/auth/refresh` (через отдельный `axios`, чтобы не зациклить interceptor).
+4. Сохраняет новую пару через `setTokens`.
+5. Повторяет исходный запрос с новым `access`.
+
+Если refresh тоже невалиден — `clearTokens()`, пользователь разлогинивается.
+
+## Безопасность: что реализовано
+
+- **Пароли** — Argon2 (не bcrypt, не sha256).
+- **Access** короткий (30 мин) — ограниченное окно утечки.
+- **Refresh** длинный (7 дней), но передаётся только на `/refresh`.
+- **Изоляция эндпоинтов**: `get_current_user` проверяет `type == "access"`, refresh-токен не даёт доступа к API.
+- **Rotation**: при `/refresh` выдаётся новая пара — старая refresh становится недействительной при добавлении проверки `iat`.
+- **Logout** — stateless: очистка `localStorage` на клиенте. Задел на будущее — добавить таблицу `refresh_tokens` для жёсткого отзыва.
+
+## Запуск
+
+### Backend
+
+```bash
+cd backend
+uvicorn app.main:app --reload --reload-dir app
+```
+
+**Переменные в `.env`:**
+
+```dotenv
+JWT_ACCESS_TOKEN_EXPIRE_MINUTES=30
+JWT_REFRESH_TOKEN_EXPIRE_DAYS=7
+```
+
+### Frontend
+
+```bash
+cd frontend
+npm run dev
+```
+
+**Требует** запущенного backend на `http://localhost:8000`.
+
+## Скриншоты
+
+#### Вход — возвращает пару токенов
+
+![Login — token pair](docs/screenshots/lab4/01-login-pair.png)
+
+#### Обновление токенов — 200 OK с новой парой
+![Refresh — 200 OK](docs/screenshots/lab4/02-refresh-200.png)
+
+#### Обновление с неверным refresh — 401 Unauthorized
+![Refresh — 401](docs/screenshots/lab4/03-refresh-401.png)
+
+#### Защищённый эндпоинт с access-токеном — 200 OK
+![Me — access token](docs/screenshots/lab4/04-me-access-200.png)
+
+#### Защищённый эндпоинт с refresh-токеном — 401 Unauthorized
+![Me — refresh token](docs/screenshots/lab4/05-me-refresh-401.png)
+
+#### Выход из приложения — 204 No Content
+![Logout — 204](docs/screenshots/lab4/06-logout-204.png)

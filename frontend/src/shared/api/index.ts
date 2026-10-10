@@ -1,2 +1,8 @@
-export { client, getToken, setToken, clearToken } from './client';
+export {
+  client,
+  getToken,
+  getRefreshToken,
+  setTokens,
+  clearTokens,
+} from './client';
 export type { ApiError, Paginated } from './types';

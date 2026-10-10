@@ -1,5 +1,10 @@
 from app.schemas.asset import AssetList, AssetRead, AssetUpdate, SimilarAsset
-from app.schemas.auth import LoginRequest, Token, ChangePasswordRequest
+from app.schemas.auth import (
+    ChangePasswordRequest,
+    LoginRequest,
+    RefreshRequest,
+    TokenPair,
+)
 from app.schemas.user import UserBase, UserCreate, UserRead
 
 __all__ = [
@@ -8,9 +13,10 @@ __all__ = [
     "AssetUpdate",
     "ChangePasswordRequest",
     "LoginRequest",
-    "Token",
+    "RefreshRequest",
+    "SimilarAsset",
+    "TokenPair",
     "UserBase",
     "UserCreate",
     "UserRead",
-    "SimilarAsset",
 ]
